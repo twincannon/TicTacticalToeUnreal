@@ -2,6 +2,8 @@
 
 
 #include "TicTacticalToe/Game/TacBoard.h"
+#include "TicTacticalToe/Game/TacGameState.h"
+#include "TicTacticalToe/TicTacticalToe.h"
 
 // Sets default values
 ATacBoard::ATacBoard()
@@ -46,9 +48,10 @@ void ATacBoard::SetupTiles()
 				tile->SetOwner(this);
 				tile->SetActorHiddenInGame(false);
 				tile->OnTileClicked.AddDynamic(this, &ATacBoard::TileClickedCallback);
-			}
 
-			newTile->SetRelativeLocation(FVector(TileSpacing * i, TileSpacing * j, 0.f));
+				float tileSpacing = tile->GetTileSpacing();
+				newTile->SetRelativeLocation(FVector(tileSpacing * i, tileSpacing * j, 0.f));
+			}
 		}
 	}
 }
@@ -56,4 +59,12 @@ void ATacBoard::SetupTiles()
 void ATacBoard::TileClickedCallback(ATacBoardTile* const tile)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Tile clicked"));
+	if (ATacGameState* gameState = Cast<ATacGameState>(GetWorld()->GetGameState()))
+	{
+		if (gameState->IsPlayersTurn())
+		{
+			tile->SetTileType(ETileType::OH);
+			gameState->PassTurn();
+		}
+	}
 }

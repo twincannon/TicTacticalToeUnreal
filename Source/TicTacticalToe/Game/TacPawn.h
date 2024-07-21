@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "TicTacticalToe/TicTacticalToe.h"
+#include <Camera/CameraComponent.h>
 #include "TacPawn.generated.h"
 
 UCLASS()
@@ -20,11 +22,18 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	USceneComponent* PawnRoot;
 
-	// Called when the game starts or when spawned
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	UCameraComponent* CameraComponent;
+
+
+	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+
+	UFUNCTION()
+	void HandleStateChanged(EGameState NewState);
 
 	void ShowMainMenu();
 

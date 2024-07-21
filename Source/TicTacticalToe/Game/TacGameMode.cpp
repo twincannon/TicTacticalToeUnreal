@@ -2,14 +2,18 @@
 
 
 #include "TicTacticalToe/Game/TacGameMode.h"
-#include "TicTacticalToe/TicTacticalToe.h"
+#include "TicTacticalToe/Game/TacGameState.h"
+#include "TicTacticalToe/Game/TacPawn.h"
 
-void ATacGameMode::BeginPlay()
+ATacGameMode::ATacGameMode()
 {
-	Super::BeginPlay();
+	GameStateClass = ATacGameState::StaticClass();
+	DefaultPawnClass = ATacPawn::StaticClass();
+}
 
-	if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
-	{
+void ATacGameMode::StartPlay()
+{
+	Super::StartPlay();
 
-	}
+	StartMatch();
 }

@@ -2,8 +2,8 @@
 
 
 #include "TicTacticalToe/Game/TacPawn.h"
-#include "TicTacticalToe/TicTacticalToe.h"
 #include "TicTacticalToe/Game/TacBoardTile.h"
+#include "TicTacticalToe/Game/TacGameState.h"
 
 #include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
@@ -12,6 +12,10 @@ ATacPawn::ATacPawn()
 {
 	PawnRoot = CreateDefaultSubobject<USceneComponent>(TEXT("PawnRoot"));
 	RootComponent = PawnRoot;
+
+	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
+	CameraComponent->SetupAttachment(PawnRoot);
+	CameraComponent->SetAutoActivate(true);
 
 	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBPClass(TEXT("/Game/UI/UI_MainMenu"));
 	if (WidgetBPClass.Class != nullptr)
@@ -24,7 +28,16 @@ ATacPawn::ATacPawn()
 
 }
 
-// Called when the game starts or when spawned
+void ATacPawn::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+
+	if (ATacGameState* gameState = Cast<ATacGameState>(GetWorld()->GetGameState()))
+	{
+		gameState->OnStateChanged.AddDynamic(this, &ATacPawn::HandleStateChanged);
+	}
+}
+
 void ATacPawn::BeginPlay()
 {
 	Super::BeginPlay();
@@ -33,8 +46,23 @@ void ATacPawn::BeginPlay()
 	{
 		pc->bShowMouseCursor = true;
 	}
+}
 
-	ShowMainMenu();
+void ATacPawn::HandleStateChanged(EGameState NewState)
+{
+	switch (NewState) {
+	case EGameState::MAINMENU:
+		ShowMainMenu();
+		break;
+	case EGameState::GAME_OVERVIEW:
+		break;
+	case EGameState::GAME_TICTACTOE:
+		break;
+	case EGameState::GAMEOVER:
+		break;
+	default:
+		break;
+	}
 }
 
 void ATacPawn::ShowMainMenu()
@@ -67,13 +95,11 @@ void ATacPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void ATacPawn::DoClickTrace()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DoClickTrace"));
-
 	FVector mousePos, mouseDir;
 	if (APlayerController* pc = Cast<APlayerController>(GetController()))
 	{
 		pc->DeprojectMousePositionToWorld(mousePos, mouseDir);
-		FVector traceStart = GetActorLocation();
+		FVector traceStart = CameraComponent->GetComponentLocation();
 		FVector traceEnd = mousePos + (mouseDir * 5000.f);
 		FHitResult hit;
 		DrawDebugLine(GetWorld(), traceStart, traceEnd, FColor::Red, false, 5.f);

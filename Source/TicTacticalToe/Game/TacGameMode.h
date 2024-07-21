@@ -3,23 +3,19 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/GameModeBase.h"
+#include "GameFramework/GameMode.h"
 #include "TacGameMode.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class TICTACTICALTOE_API ATacGameMode : public AGameModeBase
+class TICTACTICALTOE_API ATacGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
-	bool IsPlayersTurn() { return bIsPlayersTurn; }
+	ATacGameMode();
 
-	virtual void BeginPlay() override;
-
-protected:
-	bool bIsPlayersTurn = true;
+	virtual void StartPlay() override;
 };

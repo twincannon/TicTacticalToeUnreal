@@ -2,7 +2,6 @@
 
 
 #include "TicTacticalToe/Game/TacBoardTile.h"
-#include "TicTacticalToe/TicTacticalToe.h"
 
 // Sets default values
 ATacBoardTile::ATacBoardTile()
@@ -35,6 +34,11 @@ void ATacBoardTile::BeginPlay()
 {
 	Super::BeginPlay();
 	
+}
+
+void ATacBoardTile::SetTileType_Implementation(ETileType NewType)
+{
+	TileType = NewType;
 }
 
 // Called every frame

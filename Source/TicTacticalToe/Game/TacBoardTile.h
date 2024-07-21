@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 
+#include "TicTacticalToe/TicTacticalToe.h"
 #include <Components/BoxComponent.h>
 #include <Components/TextRenderComponent.h>
 
@@ -24,6 +25,15 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
 	FOnTileClicked OnTileClicked;
 
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	TEnumAsByte<ETileType> TileType = ETileType::EMPTY;
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "TicTacticalToe")
+	void SetTileType(ETileType NewType);
+	virtual void SetTileType_Implementation(ETileType NewType);
+
+	float GetTileSpacing() { return TileSpacing; }
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
@@ -39,6 +49,8 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	UTextRenderComponent* TileDebugText;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	float TileSpacing = 50.f;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

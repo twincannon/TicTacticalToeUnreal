@@ -24,9 +24,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	TSubclassOf<ATacBoardTile> TileClass;
 
-	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
-	float TileSpacing = 50.f;
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
