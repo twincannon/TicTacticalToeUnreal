@@ -23,6 +23,11 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	TSubclassOf<UUserWidget> MainMenuWidgetClass;
+
+	void ShowMainMenu();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

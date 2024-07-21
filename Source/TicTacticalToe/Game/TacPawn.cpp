@@ -2,12 +2,22 @@
 
 
 #include "TicTacticalToe/Game/TacPawn.h"
+#include "TicTacticalToe/TicTacticalToe.h"
+#include "TicTacticalToe/Game/TacBoardTile.h"
 
+#include "Blueprint/UserWidget.h"
+#include "UObject/ConstructorHelpers.h"
 // Sets default values
 ATacPawn::ATacPawn()
 {
 	PawnRoot = CreateDefaultSubobject<USceneComponent>(TEXT("PawnRoot"));
 	RootComponent = PawnRoot;
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> WidgetBPClass(TEXT("/Game/UI/UI_MainMenu"));
+	if (WidgetBPClass.Class != nullptr)
+	{
+		MainMenuWidgetClass = WidgetBPClass.Class;
+	}
 
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -22,6 +32,20 @@ void ATacPawn::BeginPlay()
 	if (APlayerController* pc = Cast<APlayerController>(GetController()))
 	{
 		pc->bShowMouseCursor = true;
+	}
+
+	ShowMainMenu();
+}
+
+void ATacPawn::ShowMainMenu()
+{
+	if (MainMenuWidgetClass)
+	{
+		UUserWidget* mainMenu = CreateWidget<UUserWidget>(GetWorld(), MainMenuWidgetClass);
+		if (IsValid(mainMenu))
+		{
+			mainMenu->AddToViewport();
+		}
 	}
 }
 
@@ -45,11 +69,20 @@ void ATacPawn::DoClickTrace()
 {
 	UE_LOG(LogTemp, Warning, TEXT("DoClickTrace"));
 
-	FVector traceEnd, traceDir;
+	FVector mousePos, mouseDir;
 	if (APlayerController* pc = Cast<APlayerController>(GetController()))
 	{
-		pc->DeprojectMousePositionToWorld(traceEnd, traceDir);
-		DrawDebugLine(GetWorld(), GetActorLocation(), traceEnd + (traceDir * 1000.f), FColor::Red, false, 5.f);
+		pc->DeprojectMousePositionToWorld(mousePos, mouseDir);
+		FVector traceStart = GetActorLocation();
+		FVector traceEnd = mousePos + (mouseDir * 5000.f);
+		FHitResult hit;
+		DrawDebugLine(GetWorld(), traceStart, traceEnd, FColor::Red, false, 5.f);
+		GetWorld()->LineTraceSingleByChannel(hit, traceStart, traceEnd, COLLISION_CLICK);
+
+		if (ATacBoardTile* tile = Cast<ATacBoardTile>(hit.GetActor()))
+		{
+			tile->OnTileClicked.Broadcast(tile);
+		}
 	}
 
 	

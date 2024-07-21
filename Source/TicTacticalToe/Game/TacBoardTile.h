@@ -15,12 +15,13 @@ class TICTACTICALTOE_API ATacBoardTile : public AActor
 {
 	GENERATED_BODY()
 
-	DECLARE_DELEGATE_OneParam(FOnTileClicked, ATacBoardTile* const);
-	
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileClicked, ATacBoardTile* const, tile);
+		
 public:	
 	// Sets default values for this actor's properties
 	ATacBoardTile();
 
+	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
 	FOnTileClicked OnTileClicked;
 
 protected:

@@ -29,8 +29,6 @@ void ATacBoard::Tick(float DeltaTime)
 
 }
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 void ATacBoard::SetupTiles()
 {
 	for (int32 i = 0; i < 3; ++i)
@@ -47,10 +45,10 @@ void ATacBoard::SetupTiles()
 			{
 				tile->SetOwner(this);
 				tile->SetActorHiddenInGame(false);
-				tile->OnTileClicked.BindUObject(this, &ATacBoard::TileClickedCallback);
+				tile->OnTileClicked.AddDynamic(this, &ATacBoard::TileClickedCallback);
 			}
 
-			newTile->SetRelativeLocation(FVector(50.f * i, 50.f * j, 0.f));
+			newTile->SetRelativeLocation(FVector(TileSpacing * i, TileSpacing * j, 0.f));
 		}
 	}
 }
@@ -59,5 +57,3 @@ void ATacBoard::TileClickedCallback(ATacBoardTile* const tile)
 {
 	UE_LOG(LogTemp, Warning, TEXT("Tile clicked"));
 }
-
-PRAGMA_ENABLE_OPTIMIZATION
