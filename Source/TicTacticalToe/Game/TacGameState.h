@@ -28,12 +28,14 @@ public:
 	FOnStateChanged OnStateChanged;
 
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
-	EGameState CurrentState;
+	TEnumAsByte<EGameState> CurrentState;
 
 	void PassTurn();
 
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	void ChangeState(EGameState NewState);
 
+	// Board class to be defined in child blueprint
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	TSubclassOf<ATacBoard> BoardClass;
 
@@ -42,6 +44,9 @@ public:
 
 protected:
 	bool bIsPlayersTurn = true;
+
+	UFUNCTION()
+	void OnBoardGameOver(EPlayerType Winner);
 
 private:
 	FTimerHandle OpponentTurnTimer;

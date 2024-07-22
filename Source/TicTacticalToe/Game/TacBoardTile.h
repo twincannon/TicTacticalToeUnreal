@@ -16,7 +16,8 @@ class TICTACTICALTOE_API ATacBoardTile : public AActor
 {
 	GENERATED_BODY()
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileClicked, ATacBoardTile* const, tile);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTileClicked, ATacBoardTile* const, Tile);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnTileTypeChanged, ETileType, OldType, ETileType, NewType);
 		
 public:	
 	// Sets default values for this actor's properties
@@ -24,6 +25,9 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
 	FOnTileClicked OnTileClicked;
+
+	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
+	FOnTileTypeChanged OnTileTypeChanged;
 
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TEnumAsByte<ETileType> TileType = ETileType::EMPTY;
@@ -33,6 +37,8 @@ public:
 	virtual void SetTileType_Implementation(ETileType NewType);
 
 	float GetTileSpacing() { return TileSpacing; }
+
+	void InitializeTile(FIntPoint Coords);
 
 protected:
 
@@ -51,6 +57,8 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	float TileSpacing = 50.f;
+
+	FIntPoint TileCoords;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

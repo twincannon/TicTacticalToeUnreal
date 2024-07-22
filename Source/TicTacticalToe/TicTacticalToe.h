@@ -22,3 +22,9 @@ enum ETileType {
 	RADIOACTIVE
 };
 
+UENUM(BlueprintType)
+enum EPlayerType {
+	PLAYER = 0,
+	OPPONENT,
+	NONE
+};

@@ -2,7 +2,7 @@
 
 
 #include "TicTacticalToe/Game/TacGameState.h"
-//#include "Kismet/GameplayStatics.h"
+#include "TicTacticalToe/Game/TacBoardTile.h"
 
 
 void ATacGameState::BeginPlay()
@@ -20,11 +20,16 @@ void ATacGameState::ChangeState(EGameState NewState)
 	{
 		if (BoardClass)
 		{
-			ATacBoard* newBoard = GetWorld()->SpawnActor<ATacBoard>(BoardClass, FVector::ZeroVector, FRotator::ZeroRotator);
+			Board = GetWorld()->SpawnActor<ATacBoard>(BoardClass, FVector::ZeroVector, FRotator::ZeroRotator);
+			if (Board)
+			{
+				Board->OnBoardGameOver.AddDynamic(this, &ATacGameState::OnBoardGameOver);
+			}
 		}
 		else
 		{
 			// Failed to make game board? Return to mainmenu
+			UE_LOG(LogTemp, Warning, TEXT("Failed to create ATacBoard"));
 			ChangeState(EGameState::MAINMENU);
 		}
 	}
@@ -34,6 +39,11 @@ void ATacGameState::ChangeState(EGameState NewState)
 
 void ATacGameState::PassTurn()
 {
+	if (CurrentState != EGameState::GAME_TICTACTOE)
+	{
+		return;
+	}
+
 	bIsPlayersTurn = !bIsPlayersTurn;
 
 	if (!bIsPlayersTurn)
@@ -44,7 +54,20 @@ void ATacGameState::PassTurn()
 
 void ATacGameState::OpponentTurn()
 {
-	// Get game board, get random empty tile, change it to X and passturn
+	// Get game board, get random empty tile (for now), change it to X and then pass the turn
+	if (IsValid(Board))
+	{
+		ATacBoardTile* const tile = Board->GetRandomEmptyTile();
+		if (IsValid(tile))
+		{
+			tile->SetTileType(ETileType::EX);
+		}
+	}
 
-	//UGameplayStatics::GetAllActorsOfClass(this, ATacBoard::StaticClass(), outBoards);
+	PassTurn();
+}
+
+void ATacGameState::OnBoardGameOver(EPlayerType Winner)
+{
+	// Current hex changes ownership to winner
 }

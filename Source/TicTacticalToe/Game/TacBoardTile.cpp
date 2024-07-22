@@ -38,7 +38,10 @@ void ATacBoardTile::BeginPlay()
 
 void ATacBoardTile::SetTileType_Implementation(ETileType NewType)
 {
+	ETileType oldType = TileType;
 	TileType = NewType;
+
+	OnTileTypeChanged.Broadcast(oldType, NewType);
 }
 
 // Called every frame
@@ -48,3 +51,9 @@ void ATacBoardTile::Tick(float DeltaTime)
 
 }
 
+void ATacBoardTile::InitializeTile(FIntPoint Coords)
+{
+	TileCoords = Coords;
+
+	SetActorHiddenInGame(false);
+}
