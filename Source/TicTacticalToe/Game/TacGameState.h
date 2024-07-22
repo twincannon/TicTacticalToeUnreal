@@ -48,6 +48,9 @@ protected:
 	UFUNCTION()
 	void OnBoardGameOver(EPlayerType Winner);
 
+	UFUNCTION()
+	void DestroyBoard();
+
 private:
 	FTimerHandle OpponentTurnTimer;
 

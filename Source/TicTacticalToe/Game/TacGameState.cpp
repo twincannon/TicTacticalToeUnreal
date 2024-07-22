@@ -33,8 +33,24 @@ void ATacGameState::ChangeState(EGameState NewState)
 			ChangeState(EGameState::MAINMENU);
 		}
 	}
+	else if (NewState == EGameState::GAME_OVERVIEW)
+	{
+		if (Board)
+		{
+			FTimerHandle handle;
+			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::DestroyBoard, 1.f, false);
+		}
+	}
 	
 	OnStateChanged.Broadcast(NewState);
+}
+
+void ATacGameState::DestroyBoard()
+{
+	if (Board)
+	{
+		Board->Destroy();
+	}
 }
 
 void ATacGameState::PassTurn()
@@ -55,7 +71,8 @@ void ATacGameState::PassTurn()
 void ATacGameState::OpponentTurn()
 {
 	// Get game board, get random empty tile (for now), change it to X and then pass the turn
-	if (IsValid(Board))
+	// As a first rudimentary AI type thing let's make it so the opponent always tries to close off player wins (if col/row has 2 player owned tiles and an empty, choose the empty)
+	if (IsValid(Board) && CurrentState == EGameState::GAME_TICTACTOE)
 	{
 		ATacBoardTile* const tile = Board->GetRandomEmptyTile();
 		if (IsValid(tile))
@@ -69,5 +86,7 @@ void ATacGameState::OpponentTurn()
 
 void ATacGameState::OnBoardGameOver(EPlayerType Winner)
 {
+
+	ChangeState(EGameState::GAME_OVERVIEW);
 	// Current hex changes ownership to winner
 }

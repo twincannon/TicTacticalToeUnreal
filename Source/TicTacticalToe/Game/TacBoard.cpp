@@ -39,23 +39,26 @@ void ATacBoard::SetupTiles()
 	{
 		for (int32 j = 0; j < BoardSize.Y; ++j)
 		{
-			UChildActorComponent* newTile = NewObject<UChildActorComponent>(this);
-			newTile->SetChildActorClass(TileClass);
-			newTile->SetupAttachment(BoardRoot);
-			newTile->CreateChildActor();
-
-			ATacBoardTile* tile = Cast<ATacBoardTile>(newTile->GetChildActor());
-			if (IsValid(tile))
+			if (TileClass)
 			{
-				tile->SetOwner(this);
-				tile->OnTileClicked.AddDynamic(this, &ATacBoard::TileClickedCallback);
-				tile->OnTileTypeChanged.AddDynamic(this, &ATacBoard::TileChanged);
-				tile->InitializeTile(FIntPoint(i, j));
+				UChildActorComponent* newTile = NewObject<UChildActorComponent>(this);
+				newTile->SetChildActorClass(TileClass);
+				newTile->SetupAttachment(BoardRoot);
+				newTile->CreateChildActor();
 
-				TileRows[i].TileCol.Add(tile);
+				ATacBoardTile* tile = Cast<ATacBoardTile>(newTile->GetChildActor());
+				if (IsValid(tile))
+				{
+					tile->SetOwner(this);
+					tile->OnTileClicked.AddDynamic(this, &ATacBoard::TileClickedCallback);
+					tile->OnTileTypeChanged.AddDynamic(this, &ATacBoard::TileChanged);
+					tile->InitializeTile(FIntPoint(i, j));
 
-				float tileSpacing = tile->GetTileSpacing();
-				newTile->SetRelativeLocation(FVector(tileSpacing* i, tileSpacing* j, 0.f));
+					TileRows[i].TileCol.Add(tile);
+
+					float tileSpacing = tile->GetTileSpacing();
+					newTile->SetRelativeLocation(FVector(tileSpacing * i, tileSpacing * j, 0.f));
+				}
 			}
 		}
 	}
@@ -66,7 +69,7 @@ void ATacBoard::TileClickedCallback(ATacBoardTile* const Tile)
 	UE_LOG(LogTemp, Warning, TEXT("Tile clicked"));
 	if (ATacGameState* gameState = Cast<ATacGameState>(GetWorld()->GetGameState()))
 	{
-		if (gameState->IsPlayersTurn())
+		if (gameState->IsPlayersTurn() && gameState->CurrentState == EGameState::GAME_TICTACTOE)
 		{
 			Tile->SetTileType(ETileType::OH);
 			gameState->PassTurn();

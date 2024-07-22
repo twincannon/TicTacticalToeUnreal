@@ -25,3 +25,7 @@ void ATacHex::Tick(float DeltaTime)
 
 }
 
+void ATacHex::SetOwnership_Implementation(EPlayerType Player)
+{
+	OwningPlayer = Player;
+}

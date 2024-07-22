@@ -6,16 +6,25 @@
 // Sets default values
 ATacHexGrid::ATacHexGrid()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	HexGridRoot = CreateDefaultSubobject<USceneComponent>(TEXT("HexGridRoot"));
+	RootComponent = HexGridRoot;
+
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+	Radius = 50.f;
+	GridSize = FIntPoint(5, 5);
+
+	HexWidth = Radius * FMath::Sqrt(3.f);
+	HexHeight = Radius * 2.f;
 }
 
 // Called when the game starts or when spawned
 void ATacHexGrid::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
+	SetupHexes();
 }
 
 // Called every frame
@@ -25,3 +34,56 @@ void ATacHexGrid::Tick(float DeltaTime)
 
 }
 
+void ATacHexGrid::SetupHexes()
+{
+	bool isFirstHex = true;
+	ATacHex* lastHex = nullptr;
+
+	int32 HalfLength = DiamondRadius / 2;
+	for (int32 row = 0; row < DiamondRadius; row++)
+	{
+		int32 numHexes = row <= HalfLength ? (row + 1) : (DiamondRadius - row);
+		float offsetX = (HalfLength - numHexes + 1) * (HexWidth * 0.75f);
+
+		for (int32 col = 0; col < numHexes; col++)
+		{
+			if (HexClass)
+			{
+				UChildActorComponent* newHex = NewObject<UChildActorComponent>(this);
+				newHex->SetChildActorClass(HexClass);
+				newHex->SetupAttachment(HexGridRoot);
+				newHex->CreateChildActor();
+
+				ATacHex* hex = Cast<ATacHex>(newHex->GetChildActor());
+				if (IsValid(hex))
+				{
+					hex->OnHexClicked.AddDynamic(this, &ATacHexGrid::OnHexClicked);
+
+					hex->SetDebugText(row, col);
+
+					if (isFirstHex)
+					{
+						hex->SetOwnership(EPlayerType::OPPONENT);
+						isFirstHex = false;
+					}
+
+					lastHex = hex;
+
+					float x = col * (HexWidth * 1.5f) + offsetX;
+					float y = row * (HexHeight * sqrt(3.0f) / 2.0f);
+					newHex->SetRelativeLocation(FVector(x, y, 0.f));
+				}
+			}
+		}
+	}
+
+	if (lastHex)
+	{
+		lastHex->SetOwnership(EPlayerType::PLAYER);
+	}
+}
+
+void ATacHexGrid::OnHexClicked(ATacHex* const Hex)
+{
+
+}
