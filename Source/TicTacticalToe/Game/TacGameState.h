@@ -64,11 +64,16 @@ protected:
 	
 	bool bIsPlayersHexTurn = false; // We flip this at the start of overview state so start out false
 
+	float TurnTimer = 0.75f;
+
 	UFUNCTION()
 	void OnBoardGameOver(bool DidOffenseWin);
 
 	UFUNCTION()
 	void DestroyBoard();
+
+	UFUNCTION()
+	void SetCapturableHexesTimerDone();
 
 	UFUNCTION()
 	void OpponentChooseHex();

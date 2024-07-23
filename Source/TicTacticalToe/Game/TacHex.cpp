@@ -12,8 +12,17 @@ ATacHex::ATacHex()
 
 	HexMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("HexMesh"));
 	HexMesh->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HexMesh->SetCollisionObjectType(COLLISION_HEX);
 	HexMesh->SetCollisionResponseToChannel(COLLISION_CLICK, ECollisionResponse::ECR_Block);
+	HexMesh->SetGenerateOverlapEvents(true);
 	HexMesh->SetupAttachment(HexRoot);
+
+	HexDetector = CreateDefaultSubobject<USphereComponent>(TEXT("HexDetector"));
+	HexDetector->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	HexDetector->SetCollisionResponseToChannel(COLLISION_HEX, ECollisionResponse::ECR_Overlap);
+	HexDetector->SetCollisionResponseToChannel(COLLISION_CLICK, ECollisionResponse::ECR_Ignore);
+	HexDetector->SetGenerateOverlapEvents(true);
+	HexDetector->SetupAttachment(HexRoot);
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -35,6 +44,29 @@ void ATacHex::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+TArray<ATacHex*> ATacHex::GetOverlappingHexes()
+{
+	TArray<AActor*> outActors;
+	HexDetector->GetOverlappingActors(outActors);
+
+	TArray<ATacHex*> hexes;
+	for (const auto& actor : outActors)
+	{
+		if (actor == this)
+		{
+			continue;
+		}
+
+		ATacHex* hex = Cast<ATacHex>(actor);
+		if (hex)
+		{
+			hexes.Add(hex);
+		}
+	}
+
+	return hexes;
 }
 
 void ATacHex::SetOwnership_Implementation(EPlayerType Player)

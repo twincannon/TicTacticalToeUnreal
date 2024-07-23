@@ -92,18 +92,17 @@ void ATacHexGrid::SetCapturableHexes()
 	// So row and col both have to be within 1
 	for (const auto& hexA : Hexes)
 	{
-		for (const auto& hexB : Hexes)
+		if (hexA->GetOwningPlayer() != EPlayerType::PLAYER) //|| hexA == hexB)
 		{
-			if (hexA->GetOwningPlayer() != EPlayerType::PLAYER || hexA == hexB)
-			{
-				continue;
-			}
+			continue;
+		}
 
-			if (FMath::Abs(hexA->HexCoords.X - hexB->HexCoords.X) <= 1 &&
-				FMath::Abs(hexA->HexCoords.Y - hexB->HexCoords.Y) <= 1 && 
-				hexB->GetOwningPlayer() != EPlayerType::PLAYER)
+		TArray<ATacHex*> hexes = hexA->GetOverlappingHexes();
+		for (const auto& hex : hexes)
+		{
+			if (hex->GetOwningPlayer() != EPlayerType::PLAYER)
 			{
-				hexB->SetCapturable(true);
+				hex->SetCapturable(true);
 			}
 		}
 	}
@@ -122,26 +121,20 @@ ATacHex* const ATacHexGrid::GetRandomOpponentCapturableHex()
 	TArray<ATacHex*> capturableHexes;
 	for (const auto& hexA : Hexes)
 	{
-		for (const auto& hexB : Hexes)
+		if (hexA->GetOwningPlayer() != EPlayerType::OPPONENT) // || hexA == hexB)
 		{
-			if (hexA->GetOwningPlayer() != EPlayerType::OPPONENT || hexA == hexB)
-			{
-				continue;
-			}
+			continue;
+		}
 
-			if (FMath::Abs(hexA->HexCoords.X - hexB->HexCoords.X) <= 1 &&
-				FMath::Abs(hexA->HexCoords.Y - hexB->HexCoords.Y) <= 1 &&
-				hexB->GetOwningPlayer() != EPlayerType::OPPONENT)
+		TArray<ATacHex*> hexes = hexA->GetOverlappingHexes();
+		for (const auto& hex : hexes)
+		{
+			if (hex->GetOwningPlayer() != EPlayerType::OPPONENT)
 			{
-				capturableHexes.Add(hexB);
+				capturableHexes.Add(hex);
+				hex->DoOpponentCapturableFlash();
 			}
 		}
-	}
-
-	UE_LOG(LogTemp, Warning, TEXT("------------------"));
-	for (const auto& hex : capturableHexes)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Capturable hex: %s"), *hex->HexCoords.ToString());
 	}
 
 	return capturableHexes.Num() > 0 ? capturableHexes[FMath::RandRange(0, capturableHexes.Num() - 1)] : nullptr;

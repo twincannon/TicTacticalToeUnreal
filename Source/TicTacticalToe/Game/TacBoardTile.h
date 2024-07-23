@@ -56,7 +56,7 @@ protected:
 	UTextRenderComponent* TileDebugText;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
-	float TileSpacing = 50.f;
+	float TileSpacing = 100.f;
 
 	FIntPoint TileCoords;
 

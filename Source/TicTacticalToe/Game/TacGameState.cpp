@@ -24,7 +24,10 @@ void ATacGameState::ChangeState(EGameState NewState)
 		return;
 	}
 
+	bIsPlayersTicTacToeTurn = false;
+	bIsTicTacToeOffenseTurn = true;
 	hexGrid->ClearCapturableHexes();
+	GetWorldTimerManager().ClearTimer(OpponentTicTacToeTurnTimer);
 	
 	if (NewState == EGameState::GAME_TICTACTOE)
 	{
@@ -42,7 +45,7 @@ void ATacGameState::ChangeState(EGameState NewState)
 				}
 				else
 				{
-					GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, 0.5f, false);
+					GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, TurnTimer, false);
 				}
 			}
 		}
@@ -57,24 +60,35 @@ void ATacGameState::ChangeState(EGameState NewState)
 	{
 		bIsPlayersHexTurn = !bIsPlayersHexTurn;
 
+		const float destroyBoardTimer = 2.f;
+		const float nextTurnTimer = destroyBoardTimer + 1.f;
 		if (Board)
 		{
 			FTimerHandle handle;
-			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::DestroyBoard, 1.f, false);
+			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::DestroyBoard, destroyBoardTimer, false);
 		}
 
 		if (bIsPlayersHexTurn)
 		{
-			hexGrid->SetCapturableHexes();
+			FTimerHandle handle;
+			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::SetCapturableHexesTimerDone, nextTurnTimer, false);
 		}
 		else
 		{
 			FTimerHandle handle;
-			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::OpponentChooseHex, 2.f, false);
+			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::OpponentChooseHex, nextTurnTimer, false);
 		}
 	}
 	
 	OnStateChanged.Broadcast(NewState);
+}
+
+void ATacGameState::SetCapturableHexesTimerDone()
+{
+	if (ATacHexGrid* hexGrid = GetHexGrid())
+	{
+		hexGrid->SetCapturableHexes();
+	}
 }
 
 void ATacGameState::DestroyBoard()
@@ -95,6 +109,7 @@ void ATacGameState::PassTicTacToeTurn()
 	bIsPlayersTicTacToeTurn = false;
 	bIsTicTacToeOffenseTurn = !bIsTicTacToeOffenseTurn;
 
+
 	if (bIsTicTacToeOffenseTurn)
 	{
 		switch (OffensiveTeam)
@@ -103,7 +118,7 @@ void ATacGameState::PassTicTacToeTurn()
 			bIsPlayersTicTacToeTurn = true;
 			break;
 		case EPlayerType::OPPONENT:
-			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, 0.5f, false);
+			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, TurnTimer, false);
 			break;
 		default:
 			break;
@@ -117,10 +132,10 @@ void ATacGameState::PassTicTacToeTurn()
 			bIsPlayersTicTacToeTurn = true;
 			break;
 		case EPlayerType::OPPONENT:
-			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, 0.5f, false);
+			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::OpponentTicTacToeTurn, TurnTimer, false);
 			break;
 		case EPlayerType::NEUTRAL:
-			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::NeutralTicTacToeTurn, 0.5f, false);
+			GetWorldTimerManager().SetTimer(OpponentTicTacToeTurnTimer, this, &ATacGameState::NeutralTicTacToeTurn, TurnTimer, false);
 			break;
 		default:
 			break;
@@ -212,7 +227,15 @@ void ATacGameState::OpponentChooseHex()
 		{
 			OffensiveTeam = EPlayerType::OPPONENT;
 			DefensiveTeam = SelectedHex->GetOwningPlayer();
-			ChangeState(EGameState::GAME_TICTACTOE);
+
+			hexGrid->ClearCapturableHexes();
+
+			FTimerHandle handle;
+			FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAME_TICTACTOE);
+
+			SelectedHex->OnHexChosen();
+			
+			GetWorldTimerManager().SetTimer(handle, timerDel, 2.f, false);
 		}
 	}
 }

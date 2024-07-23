@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 
 #define COLLISION_CLICK ECollisionChannel::ECC_GameTraceChannel1
+#define COLLISION_HEX ECollisionChannel::ECC_GameTraceChannel2
 
 UENUM(BlueprintType)
 enum EGameState {

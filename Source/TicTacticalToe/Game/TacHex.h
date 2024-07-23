@@ -5,7 +5,9 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "TicTacticalToe/TicTacticalToe.h"
+#include <Components/SphereComponent.h>
 #include "TacHex.generated.h"
+
 
 UCLASS()
 class TICTACTICALTOE_API ATacHex : public AActor
@@ -40,6 +42,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
 	bool IsCapturable() { return bCapturable; }
 
+	UFUNCTION(BlueprintImplementableEvent, Category = "TicTacticalToe")
+	void OnHexChosen();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "TicTacticalToe")
+	void DoOpponentCapturableFlash();
+
+	TArray<ATacHex*> GetOverlappingHexes();
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
@@ -47,6 +57,9 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	UStaticMeshComponent* HexMesh;
+	
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	USphereComponent* HexDetector;
 
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

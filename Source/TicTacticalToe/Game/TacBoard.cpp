@@ -54,8 +54,9 @@ void ATacBoard::SetupTiles()
 
 					TileRows[i].TileCol.Add(tile);
 
-					float tileSpacing = tile->GetTileSpacing();
-					newTile->SetRelativeLocation(FVector(tileSpacing * i, tileSpacing * j, 0.f));
+					const float tileSpacing = tile->GetTileSpacing();
+					const float tileOffset = -tileSpacing * (BoardSize.X / 2.f);
+					newTile->SetRelativeLocation(FVector(tileOffset + tileSpacing * i, tileSpacing * j, 0.f));
 				}
 			}
 		}
