@@ -26,8 +26,6 @@ ATacHex::ATacHex()
 
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
-	
 }
 
 // Called when the game starts or when spawned
@@ -90,4 +88,9 @@ void ATacHex::OnMouseLeave_Implementation(AActor* Actor)
 void ATacHex::SetCapturable_Implementation(bool bIsCapturable)
 {
 	bCapturable = bIsCapturable;
+}
+
+void ATacHex::NukeHex_Implementation()
+{
+	bIsNuked = true;
 }

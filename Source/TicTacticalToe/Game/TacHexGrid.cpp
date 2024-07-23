@@ -68,6 +68,7 @@ void ATacHexGrid::SetupHexes()
 					if (isFirstHex)
 					{
 						hex->SetOwnership(EPlayerType::OPPONENT);
+						hex->HexHQType = EPlayerType::OPPONENT;
 						isFirstHex = false;
 					}
 
@@ -84,6 +85,7 @@ void ATacHexGrid::SetupHexes()
 	if (lastHex)
 	{
 		lastHex->SetOwnership(EPlayerType::PLAYER);
+		lastHex->HexHQType = EPlayerType::PLAYER;
 	}
 }
 
@@ -92,7 +94,7 @@ void ATacHexGrid::SetCapturableHexes()
 	// So row and col both have to be within 1
 	for (const auto& hexA : Hexes)
 	{
-		if (hexA->GetOwningPlayer() != EPlayerType::PLAYER) //|| hexA == hexB)
+		if (hexA->GetOwningPlayer() != EPlayerType::PLAYER)
 		{
 			continue;
 		}
@@ -100,7 +102,7 @@ void ATacHexGrid::SetCapturableHexes()
 		TArray<ATacHex*> hexes = hexA->GetOverlappingHexes();
 		for (const auto& hex : hexes)
 		{
-			if (hex->GetOwningPlayer() != EPlayerType::PLAYER)
+			if (hex->GetOwningPlayer() != EPlayerType::PLAYER && hex->IsNuked() == false)
 			{
 				hex->SetCapturable(true);
 			}
@@ -121,7 +123,7 @@ ATacHex* const ATacHexGrid::GetRandomOpponentCapturableHex()
 	TArray<ATacHex*> capturableHexes;
 	for (const auto& hexA : Hexes)
 	{
-		if (hexA->GetOwningPlayer() != EPlayerType::OPPONENT) // || hexA == hexB)
+		if (hexA->GetOwningPlayer() != EPlayerType::OPPONENT)
 		{
 			continue;
 		}
@@ -129,7 +131,7 @@ ATacHex* const ATacHexGrid::GetRandomOpponentCapturableHex()
 		TArray<ATacHex*> hexes = hexA->GetOverlappingHexes();
 		for (const auto& hex : hexes)
 		{
-			if (hex->GetOwningPlayer() != EPlayerType::OPPONENT)
+			if (hex->GetOwningPlayer() != EPlayerType::OPPONENT && hex->IsNuked() == false)
 			{
 				capturableHexes.Add(hex);
 				hex->DoOpponentCapturableFlash();

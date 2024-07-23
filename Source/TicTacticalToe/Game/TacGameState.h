@@ -20,6 +20,7 @@ class TICTACTICALTOE_API ATacGameState : public AGameState
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStateChanged, EGameState, NewState);
 
+
 public:
 	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
 	bool IsPlayersTicTacToeTurn() { return bIsPlayersTicTacToeTurn; }
@@ -44,14 +45,26 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	ATacBoard* Board = nullptr;
 
-	UPROPERTY()
-	TSoftObjectPtr<ATacHex> SelectedHex = nullptr;
+	// Should probably be a soft pointer
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	ATacHex* SelectedHex = nullptr;
 
 	ATacHexGrid* GetHexGrid();
 
 	bool bIsTicTacToeOffenseTurn = true; // Offense always goes first
-	EPlayerType OffensiveTeam = EPlayerType::NEUTRAL;
-	EPlayerType DefensiveTeam = EPlayerType::NEUTRAL;
+
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	TEnumAsByte<EPlayerType> OffensiveTeam = EPlayerType::NONE;
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	TEnumAsByte<EPlayerType> DefensiveTeam = EPlayerType::NONE;
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	TEnumAsByte<EPlayerType> WinningTeam = EPlayerType::NONE;
+
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
+	void OnBoardGameOver(bool DidOffenseWin);
+
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	bool IsBoardGameOver();
 
 protected:
 
@@ -67,9 +80,6 @@ protected:
 	float TurnTimer = 0.75f;
 
 	UFUNCTION()
-	void OnBoardGameOver(bool DidOffenseWin);
-
-	UFUNCTION()
 	void DestroyBoard();
 
 	UFUNCTION()
@@ -78,8 +88,12 @@ protected:
 	UFUNCTION()
 	void OpponentChooseHex();
 
+	UFUNCTION()
+	void OpponentConfirmHex();
+
 private:
 	FTimerHandle OpponentTicTacToeTurnTimer;
+	FTimerHandle BoardGameOverTimer;
 
 	UFUNCTION()
 	void OpponentTicTacToeTurn();

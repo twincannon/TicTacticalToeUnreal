@@ -50,6 +50,15 @@ public:
 
 	TArray<ATacHex*> GetOverlappingHexes();
 
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "TicTacticalToe")
+	void NukeHex();
+	virtual void NukeHex_Implementation();
+
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	bool IsNuked() { return bIsNuked; }
+
+	EPlayerType HexHQType = EPlayerType::NONE;
+
 protected:
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
@@ -65,6 +74,8 @@ protected:
 	virtual void BeginPlay() override;
 
 	bool bCapturable = false;
+
+	bool bIsNuked = false;
 
 	EPlayerType OwningPlayer = EPlayerType::NEUTRAL;
 	

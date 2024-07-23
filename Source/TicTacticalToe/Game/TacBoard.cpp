@@ -85,7 +85,8 @@ void ATacBoard::TileChanged(ETileType OldType, ETileType NewType)
 	// We also need to check for stalemates, but keep state-altering effects into account if they exist (cards or ammo or whatever form they take)
 	// or maybe stalemates should still happen since the alternative is forcing a player to use their effects
 
-	if (CheckTileRows(NewType) || CheckTileCols(NewType) || CheckDiagonals(NewType))
+	TArray<ATacBoardTile*> tempTiles;
+	if (CheckTileRows(NewType, tempTiles) || CheckTileCols(NewType, tempTiles) || CheckDiagonals(NewType, tempTiles))
 	{
 		switch (NewType)
 		{
@@ -120,18 +121,37 @@ void ATacBoard::TileChanged(ETileType OldType, ETileType NewType)
 	}
 }
 
-bool ATacBoard::CheckTileRows(ETileType CheckType)
+bool ATacBoard::CheckTileRows(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles)
 {
 	for (const FTileArray& tileRow : TileRows)
 	{
 		bool rowWin = true;
+		int32 numMatched = 0;
+		ATacBoardTile* emptyTile = nullptr;;
 		for (const auto& tile : tileRow.TileCol)
 		{
-			if (!tile || tile->TileType != CheckType)
+			if (!tile)
 			{
 				rowWin = false;
-				break;
 			}
+			else if (tile->TileType == ETileType::EMPTY)
+			{
+				emptyTile = tile;
+				rowWin = false;
+			}
+			else if (tile->TileType != CheckType)
+			{
+				rowWin = false;
+			}
+			else
+			{
+				numMatched++;
+			}
+		}
+
+		if (numMatched == 2 && IsValid(emptyTile))
+		{
+			outPotentialWinTiles.Add(emptyTile);
 		}
 
 		if (rowWin)
@@ -143,7 +163,7 @@ bool ATacBoard::CheckTileRows(ETileType CheckType)
 	return false;
 }
 
-bool ATacBoard::CheckTileCols(ETileType CheckType)
+bool ATacBoard::CheckTileCols(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles)
 {
 	if (TileRows.Num() == 0)
 	{
@@ -153,14 +173,33 @@ bool ATacBoard::CheckTileCols(ETileType CheckType)
 	for (int32 col = 0; col < TileRows[0].TileCol.Num(); ++col)
 	{
 		bool colWin = true;
+		int32 numMatched = 0;
+		ATacBoardTile* emptyTile = nullptr;
 		for (int32 row = 0; row < TileRows.Num(); ++row)
 		{
 			ATacBoardTile* tile = TileRows[row].TileCol[col];
-			if (!tile || tile->TileType != CheckType)
+			if (!tile)
 			{
 				colWin = false;
-				break;
 			}
+			else if (tile->TileType == ETileType::EMPTY)
+			{
+				emptyTile = tile;
+				colWin = false;
+			}
+			else if (tile->TileType != CheckType)
+			{
+				colWin = false;
+			}
+			else
+			{
+				numMatched++;
+			}
+		}
+
+		if (numMatched == 2 && IsValid(emptyTile))
+		{
+			outPotentialWinTiles.Add(emptyTile);
 		}
 		
 		if (colWin)
@@ -172,7 +211,7 @@ bool ATacBoard::CheckTileCols(ETileType CheckType)
 	return false;
 }
 
-bool ATacBoard::CheckDiagonals(ETileType CheckType)
+bool ATacBoard::CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles)
 {
 	int32 rows = TileRows.Num();
 	if (rows <= 0)
@@ -189,25 +228,61 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType)
 	}
 
 	bool diagonalWinA = true;
+	int32 numMatched = 0;
+	ATacBoardTile* emptyTile = nullptr;;
 	for (int32 i = 0; i < rows; ++i)
 	{
 		ATacBoardTile* tile = TileRows[i].TileCol[i];
-		if (!tile || tile->TileType != CheckType)
+		if (!tile)
 		{
 			diagonalWinA = false;
-			break;
 		}
+		else if (tile->TileType == ETileType::EMPTY)
+		{
+			emptyTile = tile;
+			diagonalWinA = false;
+		}
+		else if (tile->TileType != CheckType)
+		{
+			diagonalWinA = false;
+		}
+		else
+		{
+			numMatched++;
+		}
+	}
+	if (numMatched == 2 && IsValid(emptyTile))
+	{
+		outPotentialWinTiles.Add(emptyTile);
 	}
 
 	bool diagonalWinB = true;
+	numMatched = 0;
+	emptyTile = nullptr;
 	for (int32 i = 0; i < rows; ++i)
 	{
 		ATacBoardTile* tile = TileRows[i].TileCol[cols - 1 - i];
-		if (!tile || tile->TileType != CheckType)
+		if (!tile)
 		{
 			diagonalWinB = false;
-			break;
 		}
+		else if (tile->TileType == ETileType::EMPTY)
+		{
+			emptyTile = tile;
+			diagonalWinB = false;
+		}
+		else if (tile->TileType != CheckType)
+		{
+			diagonalWinB = false;
+		}
+		else
+		{
+			numMatched++;
+		}
+	}
+	if (numMatched == 2 && IsValid(emptyTile))
+	{
+		outPotentialWinTiles.Add(emptyTile);
 	}
 
 	return diagonalWinA || diagonalWinB;
@@ -235,4 +310,17 @@ ATacBoardTile* const ATacBoard::GetRandomEmptyTile()
 	}
 
 	return nullptr;
+}
+
+TArray<ATacBoardTile*> ATacBoard::GetPotentialWinningTiles()
+{
+	TArray<ATacBoardTile*> tiles;
+	CheckTileRows(ETileType::OH, tiles);
+	CheckTileCols(ETileType::OH, tiles);
+	CheckDiagonals(ETileType::OH, tiles);
+	CheckTileRows(ETileType::EX, tiles);
+	CheckTileCols(ETileType::EX, tiles);
+	CheckDiagonals(ETileType::EX, tiles);
+
+	return tiles;
 }

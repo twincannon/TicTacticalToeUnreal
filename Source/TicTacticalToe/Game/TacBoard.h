@@ -48,9 +48,9 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	bool CheckTileRows(ETileType CheckType);
-	bool CheckTileCols(ETileType CheckType);
-	bool CheckDiagonals(ETileType CheckType);
+	bool CheckTileRows(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles);
+	bool CheckTileCols(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles);
+	bool CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outPotentialWinTiles);
 
 
 public:	
@@ -58,6 +58,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	ATacBoardTile* const GetRandomEmptyTile();
+
+	TArray<ATacBoardTile*> GetPotentialWinningTiles();
 
 private:
 	void SetupTiles();

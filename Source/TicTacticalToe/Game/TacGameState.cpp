@@ -60,12 +60,11 @@ void ATacGameState::ChangeState(EGameState NewState)
 	{
 		bIsPlayersHexTurn = !bIsPlayersHexTurn;
 
-		const float destroyBoardTimer = 2.f;
-		const float nextTurnTimer = destroyBoardTimer + 1.f;
+		const float nextTurnTimer = 1.f;
+
 		if (Board)
 		{
-			FTimerHandle handle;
-			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::DestroyBoard, destroyBoardTimer, false);
+			DestroyBoard();
 		}
 
 		if (bIsPlayersHexTurn)
@@ -77,6 +76,13 @@ void ATacGameState::ChangeState(EGameState NewState)
 		{
 			FTimerHandle handle;
 			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::OpponentChooseHex, nextTurnTimer, false);
+		}
+	}
+	else if (NewState == EGameState::GAMEOVER)
+	{
+		if (Board)
+		{
+			Board->Destroy();
 		}
 	}
 	
@@ -106,9 +112,14 @@ void ATacGameState::PassTicTacToeTurn()
 		return;
 	}
 
+	if (GetWorldTimerManager().IsTimerActive(BoardGameOverTimer))
+	{
+		// We triggered game over, don't queue up another turn
+		return;
+	}
+
 	bIsPlayersTicTacToeTurn = false;
 	bIsTicTacToeOffenseTurn = !bIsTicTacToeOffenseTurn;
-
 
 	if (bIsTicTacToeOffenseTurn)
 	{
@@ -145,19 +156,31 @@ void ATacGameState::PassTicTacToeTurn()
 
 void ATacGameState::OpponentTicTacToeTurn()
 {
-	// As a first rudimentary AI type thing let's make it so the opponent always tries to close off player wins (if col/row has 2 player owned tiles and an empty, choose the empty)
+	// Opponent is smarter than neutral and tries to close off and secure wins
 	if (IsValid(Board) && CurrentState == EGameState::GAME_TICTACTOE)
 	{
-		ATacBoardTile* const tile = Board->GetRandomEmptyTile();
-		if (IsValid(tile))
+		ATacBoardTile* randomTile = nullptr;
+		TArray<ATacBoardTile*> winTiles = Board->GetPotentialWinningTiles();
+		
+		if (winTiles.Num() >= 1)
+		{
+			// Actually picking the first found tile instead of a random one is smarter, amusingly (since it means that it will prioritize tile type OH/offense)
+			randomTile = winTiles[0]; //winTiles[FMath::RandRange(0, winTiles.Num() - 1)];
+		}
+		else
+		{
+			randomTile = Board->GetRandomEmptyTile();
+		}
+
+		if (IsValid(randomTile))
 		{
 			if (OffensiveTeam == EPlayerType::OPPONENT)
 			{
-				tile->SetTileType(ETileType::OH);
+				randomTile->SetTileType(ETileType::OH);
 			}
 			else
 			{
-				tile->SetTileType(ETileType::EX);
+				randomTile->SetTileType(ETileType::EX);
 			}
 		}
 	}
@@ -183,20 +206,45 @@ void ATacGameState::NeutralTicTacToeTurn()
 
 void ATacGameState::OnBoardGameOver(bool DidOffenseWin)
 {
-	
+
 	// Current hex changes ownership to winner
 
-	if (ATacHex* hex = SelectedHex.Get())
+	if (SelectedHex)
 	{
 		// If player or opponent lost to neutral it needs to stay neutral, NOT turn to the opposing side
-		// This actually brings into question the idea of there being a neutral force at all, since that means AI plays vs AI?
 		if (DidOffenseWin)
 		{
-			hex->SetOwnership(OffensiveTeam);
+			if (SelectedHex->HexHQType == EPlayerType::OPPONENT)
+			{
+				WinningTeam = EPlayerType::PLAYER;
+			}
+			else if (SelectedHex->HexHQType == EPlayerType::PLAYER)
+			{
+				WinningTeam = EPlayerType::OPPONENT;
+			}
+
+			SelectedHex->SetOwnership(OffensiveTeam);
+
+			if (WinningTeam != EPlayerType::NONE)
+			{
+				FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAMEOVER);
+				GetWorldTimerManager().SetTimer(BoardGameOverTimer, timerDel, 3.f, false);
+			}
 		}
 	}
 
-	ChangeState(EGameState::GAME_OVERVIEW);
+	if (IsBoardGameOver() == false)
+	{
+		FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAME_OVERVIEW);
+		GetWorldTimerManager().SetTimer(BoardGameOverTimer, timerDel, 3.f, false);
+	}
+
+	GetWorldTimerManager().ClearTimer(OpponentTicTacToeTurnTimer);
+}
+
+bool ATacGameState::IsBoardGameOver()
+{
+	return GetWorldTimerManager().IsTimerActive(BoardGameOverTimer);
 }
 
 ATacHexGrid* ATacGameState::GetHexGrid()
@@ -222,20 +270,32 @@ void ATacGameState::OpponentChooseHex()
 {
 	if (ATacHexGrid* hexGrid = GetHexGrid())
 	{
-		SelectedHex = hexGrid->GetRandomOpponentCapturableHex();
+		SelectedHex = hexGrid->GetRandomOpponentCapturableHex(); // This highlights the hexes the opponent can choose from
+
 		if (SelectedHex)
 		{
-			OffensiveTeam = EPlayerType::OPPONENT;
-			DefensiveTeam = SelectedHex->GetOwningPlayer();
-
-			hexGrid->ClearCapturableHexes();
-
 			FTimerHandle handle;
-			FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAME_TICTACTOE);
-
-			SelectedHex->OnHexChosen();
-			
-			GetWorldTimerManager().SetTimer(handle, timerDel, 2.f, false);
+			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::OpponentConfirmHex, 3.f, false);
 		}
+	}
+}
+
+void ATacGameState::OpponentConfirmHex()
+{
+	if (SelectedHex)
+	{
+		SelectedHex->OnHexChosen();
+
+		OffensiveTeam = EPlayerType::OPPONENT;
+		DefensiveTeam = SelectedHex->GetOwningPlayer();
+
+		if (ATacHexGrid* hexGrid = GetHexGrid())
+		{
+			hexGrid->ClearCapturableHexes();
+		}
+
+		FTimerHandle handle;
+		FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAME_TICTACTOE);
+		GetWorldTimerManager().SetTimer(handle, timerDel, 1.f, false);
 	}
 }
