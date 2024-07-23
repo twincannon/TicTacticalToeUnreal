@@ -22,7 +22,7 @@ class TICTACTICALTOE_API ATacBoard : public AActor
 {
 	GENERATED_BODY()
 
-	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBoardGameOver, EPlayerType, Winner);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnBoardGameOver, bool, DidOffenseWin);
 	
 public:	
 	// Sets default values for this actor's properties

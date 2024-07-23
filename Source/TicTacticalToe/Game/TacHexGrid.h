@@ -16,6 +16,11 @@ public:
 	// Sets default values for this actor's properties
 	ATacHexGrid();
 
+	void SetCapturableHexes();
+	void ClearCapturableHexes();
+
+	ATacHex* const GetRandomOpponentCapturableHex();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -41,6 +46,9 @@ protected:
 	FIntPoint GridSize;
 
 	float HexWidth, HexHeight;
+
+	UPROPERTY()
+	TArray<ATacHex*> Hexes;
 
 
 public:	

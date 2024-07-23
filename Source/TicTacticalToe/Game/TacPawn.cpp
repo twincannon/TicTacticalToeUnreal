@@ -4,6 +4,7 @@
 #include "TicTacticalToe/Game/TacPawn.h"
 #include "TicTacticalToe/Game/TacBoardTile.h"
 #include "TicTacticalToe/Game/TacGameState.h"
+#include "TicTacticalToe/Game/TacHex.h"
 
 #include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
@@ -45,12 +46,14 @@ void ATacPawn::BeginPlay()
 	if (APlayerController* pc = Cast<APlayerController>(GetController()))
 	{
 		pc->bShowMouseCursor = true;
+		pc->bEnableMouseOverEvents = true;
 	}
 }
 
 void ATacPawn::HandleStateChanged(EGameState NewState)
 {
-	switch (NewState) {
+	switch (NewState)
+	{
 	case EGameState::MAINMENU:
 		ShowMainMenu();
 		break;
@@ -108,6 +111,10 @@ void ATacPawn::DoClickTrace()
 		if (ATacBoardTile* tile = Cast<ATacBoardTile>(hit.GetActor()))
 		{
 			tile->OnTileClicked.Broadcast(tile);
+		}
+		else if (ATacHex* hex = Cast<ATacHex>(hit.GetActor()))
+		{
+			hex->OnHexClicked.Broadcast(hex);
 		}
 	}
 

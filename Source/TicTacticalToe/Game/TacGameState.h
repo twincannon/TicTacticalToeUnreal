@@ -6,6 +6,8 @@
 #include "GameFramework/GameState.h"
 #include "TicTacticalToe/TicTacticalToe.h"
 #include "TicTacticalToe/Game/TacBoard.h"
+#include "TicTacticalToe/Game/TacHex.h"
+#include "TicTacticalToe/Game/TacHexGrid.h"
 #include "TacGameState.generated.h"
 
 /**
@@ -20,7 +22,7 @@ class TICTACTICALTOE_API ATacGameState : public AGameState
 
 public:
 	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
-	bool IsPlayersTurn() { return bIsPlayersTurn; }
+	bool IsPlayersTicTacToeTurn() { return bIsPlayersTicTacToeTurn; }
 
 	virtual void BeginPlay() override;
 
@@ -30,7 +32,7 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TEnumAsByte<EGameState> CurrentState;
 
-	void PassTurn();
+	void PassTicTacToeTurn();
 
 	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	void ChangeState(EGameState NewState);
@@ -42,18 +44,41 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	ATacBoard* Board = nullptr;
 
+	UPROPERTY()
+	TSoftObjectPtr<ATacHex> SelectedHex = nullptr;
+
+	ATacHexGrid* GetHexGrid();
+
+	bool bIsTicTacToeOffenseTurn = true; // Offense always goes first
+	EPlayerType OffensiveTeam = EPlayerType::NEUTRAL;
+	EPlayerType DefensiveTeam = EPlayerType::NEUTRAL;
+
 protected:
-	bool bIsPlayersTurn = true;
+
+	UPROPERTY()
+	ATacHexGrid* HexGrid;
+
+	bool bIsPlayersTicTacToeTurn = true;
+
+	EPlayerType TicTacToeTeamTurn = EPlayerType::NEUTRAL;
+	
+	bool bIsPlayersHexTurn = false; // We flip this at the start of overview state so start out false
 
 	UFUNCTION()
-	void OnBoardGameOver(EPlayerType Winner);
+	void OnBoardGameOver(bool DidOffenseWin);
 
 	UFUNCTION()
 	void DestroyBoard();
 
+	UFUNCTION()
+	void OpponentChooseHex();
+
 private:
-	FTimerHandle OpponentTurnTimer;
+	FTimerHandle OpponentTicTacToeTurnTimer;
 
 	UFUNCTION()
-	void OpponentTurn();
+	void OpponentTicTacToeTurn();
+
+	UFUNCTION()
+	void NeutralTicTacToeTurn();
 };

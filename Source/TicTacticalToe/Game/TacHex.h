@@ -28,11 +28,40 @@ public:
 	void SetOwnership(EPlayerType Player);
 	virtual void SetOwnership_Implementation(EPlayerType Player);
 
+	EPlayerType GetOwningPlayer() { return OwningPlayer; }
+
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
+	FIntPoint HexCoords;
+
+	UFUNCTION(BlueprintNativeEvent, Category = "TicTacticalToe")
+	void SetCapturable(bool bIsCapturable);
+	virtual void SetCapturable_Implementation(bool bIsCapturable);
+
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	bool IsCapturable() { return bCapturable; }
+
 protected:
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	USceneComponent* HexRoot;
+
+	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
+	UStaticMeshComponent* HexMesh;
+
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	EPlayerType OwningPlayer = EPlayerType::NONE;
+	bool bCapturable = false;
+
+	EPlayerType OwningPlayer = EPlayerType::NEUTRAL;
+	
+	UFUNCTION(BlueprintNativeEvent, Category = "TicTacticalToe")
+	void OnMouseOver(AActor* Actor);
+	virtual void OnMouseOver_Implementation(AActor* Actor);
+
+	UFUNCTION(BlueprintNativeEvent, Category = "TicTacticalToe")
+	void OnMouseLeave(AActor* Actor);
+	virtual void OnMouseLeave_Implementation(AActor* Actor);
 
 public:	
 	// Called every frame

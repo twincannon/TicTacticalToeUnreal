@@ -1,7 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-PRAGMA_DISABLE_OPTIMIZATION
-
 #include "TicTacticalToe/Game/TacBoard.h"
 #include "TicTacticalToe/Game/TacGameState.h"
 #include "TicTacticalToe/TicTacticalToe.h"
@@ -66,13 +64,15 @@ void ATacBoard::SetupTiles()
 
 void ATacBoard::TileClickedCallback(ATacBoardTile* const Tile)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Tile clicked"));
 	if (ATacGameState* gameState = Cast<ATacGameState>(GetWorld()->GetGameState()))
 	{
-		if (gameState->IsPlayersTurn() && gameState->CurrentState == EGameState::GAME_TICTACTOE)
+		if (gameState->IsPlayersTicTacToeTurn() && gameState->CurrentState == EGameState::GAME_TICTACTOE)
 		{
-			Tile->SetTileType(ETileType::OH);
-			gameState->PassTurn();
+			if (Tile->TileType == ETileType::EMPTY)
+			{
+				Tile->SetTileType(gameState->OffensiveTeam == EPlayerType::PLAYER ? ETileType::OH : ETileType::EX);
+				gameState->PassTicTacToeTurn();
+			}
 		}
 	}
 }
@@ -89,17 +89,34 @@ void ATacBoard::TileChanged(ETileType OldType, ETileType NewType)
 		switch (NewType)
 		{
 		case ETileType::OH:
-			OnBoardGameOver.Broadcast(EPlayerType::PLAYER);
-			break;
+			// Offense wins and the attacking force takes the hex
+			OnBoardGameOver.Broadcast(true);
+			return;
 		case ETileType::EX:
-			OnBoardGameOver.Broadcast(EPlayerType::OPPONENT);
-			break;
+			// Defense wins and the hex stays unchanged
+			OnBoardGameOver.Broadcast(false);
+			return;
 		default:
 			break;
 		}
 	}
 
+	bool anyEmpty = false;
+	for (const FTileArray& tileRow : TileRows)
+	{
+		for (const auto& tile : tileRow.TileCol)
+		{
+			if (tile->TileType == ETileType::EMPTY)
+			{
+				anyEmpty = true;
+			}
+		}
+	}
 
+	if (!anyEmpty)
+	{
+		OnBoardGameOver.Broadcast(false);
+	}
 }
 
 bool ATacBoard::CheckTileRows(ETileType CheckType)
@@ -170,29 +187,29 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType)
 		return false;
 	}
 
-	bool diagonalWin = true;
+	bool diagonalWinA = true;
 	for (int32 i = 0; i < rows; ++i)
 	{
 		ATacBoardTile* tile = TileRows[i].TileCol[i];
 		if (!tile || tile->TileType != CheckType)
 		{
-			diagonalWin = false;
+			diagonalWinA = false;
 			break;
 		}
 	}
 
-	diagonalWin = true;
+	bool diagonalWinB = true;
 	for (int32 i = 0; i < rows; ++i)
 	{
 		ATacBoardTile* tile = TileRows[i].TileCol[cols - 1 - i];
 		if (!tile || tile->TileType != CheckType)
 		{
-			diagonalWin = false;
+			diagonalWinB = false;
 			break;
 		}
 	}
 
-	return diagonalWin;
+	return diagonalWinA || diagonalWinB;
 }
 
 
@@ -218,5 +235,3 @@ ATacBoardTile* const ATacBoard::GetRandomEmptyTile()
 
 	return nullptr;
 }
-
-PRAGMA_ENABLE_OPTIMIZATION

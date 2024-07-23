@@ -2,6 +2,7 @@
 
 
 #include "TicTacticalToe/Game/TacHexGrid.h"
+#include "TicTacticalToe/Game/TacGameState.h"
 
 // Sets default values
 ATacHexGrid::ATacHexGrid()
@@ -59,7 +60,10 @@ void ATacHexGrid::SetupHexes()
 				{
 					hex->OnHexClicked.AddDynamic(this, &ATacHexGrid::OnHexClicked);
 
+					hex->HexCoords = FIntPoint(row, col);
 					hex->SetDebugText(row, col);
+
+					Hexes.Add(hex);
 
 					if (isFirstHex)
 					{
@@ -83,7 +87,76 @@ void ATacHexGrid::SetupHexes()
 	}
 }
 
+void ATacHexGrid::SetCapturableHexes()
+{
+	// So row and col both have to be within 1
+	for (const auto& hexA : Hexes)
+	{
+		for (const auto& hexB : Hexes)
+		{
+			if (hexA->GetOwningPlayer() != EPlayerType::PLAYER || hexA == hexB)
+			{
+				continue;
+			}
+
+			if (FMath::Abs(hexA->HexCoords.X - hexB->HexCoords.X) <= 1 &&
+				FMath::Abs(hexA->HexCoords.Y - hexB->HexCoords.Y) <= 1 && 
+				hexB->GetOwningPlayer() != EPlayerType::PLAYER)
+			{
+				hexB->SetCapturable(true);
+			}
+		}
+	}
+}
+
+void ATacHexGrid::ClearCapturableHexes()
+{
+	for (const auto& hex : Hexes)
+	{
+		hex->SetCapturable(false);
+	}
+}
+
+ATacHex* const ATacHexGrid::GetRandomOpponentCapturableHex()
+{
+	TArray<ATacHex*> capturableHexes;
+	for (const auto& hexA : Hexes)
+	{
+		for (const auto& hexB : Hexes)
+		{
+			if (hexA->GetOwningPlayer() != EPlayerType::OPPONENT || hexA == hexB)
+			{
+				continue;
+			}
+
+			if (FMath::Abs(hexA->HexCoords.X - hexB->HexCoords.X) <= 1 &&
+				FMath::Abs(hexA->HexCoords.Y - hexB->HexCoords.Y) <= 1 &&
+				hexB->GetOwningPlayer() != EPlayerType::OPPONENT)
+			{
+				capturableHexes.Add(hexB);
+			}
+		}
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("------------------"));
+	for (const auto& hex : capturableHexes)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Capturable hex: %s"), *hex->HexCoords.ToString());
+	}
+
+	return capturableHexes.Num() > 0 ? capturableHexes[FMath::RandRange(0, capturableHexes.Num() - 1)] : nullptr;
+}
+
 void ATacHexGrid::OnHexClicked(ATacHex* const Hex)
 {
-
+	if (Hex && Hex->IsCapturable())
+	{
+		if (ATacGameState* gameState = Cast<ATacGameState>(GetWorld()->GetGameState()))
+		{
+			gameState->SelectedHex = Hex;
+			gameState->OffensiveTeam = EPlayerType::PLAYER; // Player clicked this hex so it must be the player as offensive team
+			gameState->DefensiveTeam = Hex->GetOwningPlayer();
+			gameState->ChangeState(EGameState::GAME_TICTACTOE);
+		}
+	}
 }
