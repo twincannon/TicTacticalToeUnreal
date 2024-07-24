@@ -61,10 +61,16 @@ public:
 
 	TArray<ATacBoardTile*> GetPotentialWinningTiles();
 
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	TArray<ATacBoardTile*> GetCenterWallTiles();
+
 	// Clears the row or col from the center wall tile (the only type of tile that you can select that infers a row or col)
 	// Returns if the clear was succesful (i.e. a valid target tile was chosen)
 	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	bool ClearRowOrColFromCenterWallTile(ATacBoardTile* TargetTile);
+
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
+	void ClearSelectableTiles();
 
 private:
 	void SetupTiles();

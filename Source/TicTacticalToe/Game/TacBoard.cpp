@@ -292,7 +292,6 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outP
 	return diagonalWinA || diagonalWinB;
 }
 
-
 ATacBoardTile* const ATacBoard::GetRandomEmptyTile()
 {
 	TArray<ATacBoardTile*> emptyTiles;
@@ -327,6 +326,34 @@ TArray<ATacBoardTile*> ATacBoard::GetPotentialWinningTiles()
 	CheckDiagonals(ETileType::EX, tiles);
 
 	return tiles;
+}
+
+TArray<ATacBoardTile*> ATacBoard::GetCenterWallTiles()
+{
+	TArray<ATacBoardTile*> wallTiles;
+
+	int32 numRows = TileRows.Num();
+	if (numRows > 2)
+	{
+		int32 numCols = TileRows[0].TileCol.Num();
+
+		for (int32 i = 0; i < numRows; ++i)
+		{
+			for (int32 j = 0; j < numCols; ++j)
+			{
+				if ((i == 0 || i == numRows - 1) && (j > 0 && j < numCols - 1))
+				{
+					wallTiles.Add(TileRows[i].TileCol[j]);
+				}
+				else if ((j == 0 || j == numCols - 1) && (i > 0 && i < numRows - 1))
+				{
+					wallTiles.Add(TileRows[i].TileCol[j]);
+				}
+			}
+		}
+	}
+
+	return wallTiles;
 }
 
 bool ATacBoard::ClearRowOrColFromCenterWallTile(ATacBoardTile* TargetTile)
@@ -399,4 +426,15 @@ bool ATacBoard::ClearRowOrColFromCenterWallTile(ATacBoardTile* TargetTile)
 	}
 
 	return false;
+}
+
+void ATacBoard::ClearSelectableTiles()
+{
+	for (const FTileArray& tileRow : TileRows)
+	{
+		for (const auto& tile : tileRow.TileCol)
+		{
+			tile->SetTileSelectable(false);
+		}
+	}
 }

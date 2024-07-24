@@ -39,6 +39,9 @@ public:
 	float GetTileSpacing() { return TileSpacing; }
 
 	void InitializeTile(FIntPoint Coords);
+	
+	UFUNCTION(BlueprintImplementableEvent, BlueprintCallable, Category = "TicTacticalToe")
+	void SetTileSelectable(bool bIsSelectable);
 
 protected:
 

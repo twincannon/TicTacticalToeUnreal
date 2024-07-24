@@ -319,6 +319,6 @@ void ATacGameState::SetSelectingTileForItem(bool bIsSelecting)
 	if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
 	{
 		pc->CurrentMouseCursor = bIsSelecting ? EMouseCursor::Crosshairs : EMouseCursor::Default;
-		UWidgetBlueprintLibrary::SetFocusToGameViewport();
+		UWidgetBlueprintLibrary::SetFocusToGameViewport(); // Hack to get cursor to update immediately
 	}
 }
