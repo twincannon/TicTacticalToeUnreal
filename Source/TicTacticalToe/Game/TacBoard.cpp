@@ -69,7 +69,11 @@ void ATacBoard::TileClickedCallback(ATacBoardTile* const Tile)
 	{
 		if (gameState->IsPlayersTicTacToeTurn() && gameState->CurrentState == EGameState::GAME_TICTACTOE)
 		{
-			if (Tile->TileType == ETileType::EMPTY)
+			if (gameState->IsSelectingTileForItem())
+			{
+				gameState->OnItemTileSelected.Broadcast(Tile);
+			}
+			else if (Tile->TileType == ETileType::EMPTY)
 			{
 				Tile->SetTileType(gameState->OffensiveTeam == EPlayerType::PLAYER ? ETileType::OH : ETileType::EX);
 				gameState->PassTicTacToeTurn();
@@ -127,7 +131,7 @@ bool ATacBoard::CheckTileRows(ETileType CheckType, TArray<ATacBoardTile*>& outPo
 	{
 		bool rowWin = true;
 		int32 numMatched = 0;
-		ATacBoardTile* emptyTile = nullptr;;
+		ATacBoardTile* emptyTile = nullptr;
 		for (const auto& tile : tileRow.TileCol)
 		{
 			if (!tile)
@@ -149,7 +153,7 @@ bool ATacBoard::CheckTileRows(ETileType CheckType, TArray<ATacBoardTile*>& outPo
 			}
 		}
 
-		if (numMatched == 2 && IsValid(emptyTile))
+		if (numMatched == (BoardSize.X - 1) && IsValid(emptyTile))
 		{
 			outPotentialWinTiles.Add(emptyTile);
 		}
@@ -197,7 +201,7 @@ bool ATacBoard::CheckTileCols(ETileType CheckType, TArray<ATacBoardTile*>& outPo
 			}
 		}
 
-		if (numMatched == 2 && IsValid(emptyTile))
+		if (numMatched == (BoardSize.Y - 1) && IsValid(emptyTile))
 		{
 			outPotentialWinTiles.Add(emptyTile);
 		}
@@ -229,7 +233,7 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outP
 
 	bool diagonalWinA = true;
 	int32 numMatched = 0;
-	ATacBoardTile* emptyTile = nullptr;;
+	ATacBoardTile* emptyTile = nullptr;
 	for (int32 i = 0; i < rows; ++i)
 	{
 		ATacBoardTile* tile = TileRows[i].TileCol[i];
@@ -251,7 +255,7 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outP
 			numMatched++;
 		}
 	}
-	if (numMatched == 2 && IsValid(emptyTile))
+	if (numMatched == (BoardSize.X - 1) && IsValid(emptyTile))
 	{
 		outPotentialWinTiles.Add(emptyTile);
 	}
@@ -280,7 +284,7 @@ bool ATacBoard::CheckDiagonals(ETileType CheckType, TArray<ATacBoardTile*>& outP
 			numMatched++;
 		}
 	}
-	if (numMatched == 2 && IsValid(emptyTile))
+	if (numMatched == (BoardSize.X - 1) && IsValid(emptyTile))
 	{
 		outPotentialWinTiles.Add(emptyTile);
 	}
@@ -323,4 +327,76 @@ TArray<ATacBoardTile*> ATacBoard::GetPotentialWinningTiles()
 	CheckDiagonals(ETileType::EX, tiles);
 
 	return tiles;
+}
+
+bool ATacBoard::ClearRowOrColFromCenterWallTile(ATacBoardTile* TargetTile)
+{
+	// TODO: This function only works with a 3x3 grid, which is a problem if we want to support differently sized grids
+	int32 targetRow = -1;
+	int32 targetCol = -1;
+	int32 rowNum = 0;
+
+	for (const FTileArray& tileRow : TileRows)
+	{
+		int32 colNum = 0;
+		for (const auto& tile : tileRow.TileCol)
+		{
+			if (tile == TargetTile)
+			{
+				targetRow = rowNum;
+				targetCol = colNum;
+				break;
+			}
+			colNum++;
+		}
+		if (targetRow != -1 && targetCol != -1)
+		{
+			break;
+		}
+		rowNum++;
+	}
+
+	if (targetRow == -1 || targetCol == -1)
+	{
+		return false;
+	}
+
+	// Check each "center wall" condition
+	if ((targetRow == 0 && targetCol == 1) ||
+		(targetRow == 1 && targetCol == 0) ||
+		(targetRow == 1 && targetCol == 2) ||
+		(targetRow == 2 && targetCol == 1))
+	{
+		if (targetRow == 0 && targetCol == 1)
+		{
+			for (int32 i = 0; i < 3; ++i)
+			{
+				TileRows[0].TileCol[i]->SetTileType(ETileType::EMPTY);
+			}
+		}
+		else if (targetRow == 1 && targetCol == 0)
+		{
+			for (int32 i = 0; i < 3; ++i)
+			{
+				TileRows[i].TileCol[0]->SetTileType(ETileType::EMPTY);
+			}
+		}
+		else if (targetRow == 1 && targetCol == 2)
+		{
+			for (int32 i = 0; i < 3; ++i)
+			{
+				TileRows[i].TileCol[2]->SetTileType(ETileType::EMPTY);
+			}
+		}
+		else if (targetRow == 2 && targetCol == 1)
+		{
+			for (int32 i = 0; i < 3; ++i)
+			{
+				TileRows[2].TileCol[i]->SetTileType(ETileType::EMPTY);
+			}
+		}
+		return true;
+	}
+
+	return false;
 }

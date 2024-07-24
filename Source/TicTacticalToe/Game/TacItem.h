@@ -15,7 +15,12 @@ class TICTACTICALTOE_API UTacItem : public UObject
 {
 	GENERATED_BODY()
 
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnItemUsed);
+
 public:
+
+	UPROPERTY(BlueprintAssignable, BlueprintCallable, Category = "TicTacticalToe")
+	FOnItemUsed OnItemUsed;
 
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	FText ItemName;

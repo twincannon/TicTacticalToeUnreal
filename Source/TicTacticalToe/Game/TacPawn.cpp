@@ -47,6 +47,7 @@ void ATacPawn::BeginPlay()
 	{
 		pc->bShowMouseCursor = true;
 		pc->bEnableMouseOverEvents = true;
+		//pc->SetInputMode(FInputModeGameAndUI()); // For some reason this causes the cursor to disappear when clicking
 	}
 }
 

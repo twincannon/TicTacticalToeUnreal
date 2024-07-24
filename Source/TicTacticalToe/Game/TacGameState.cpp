@@ -4,6 +4,7 @@
 #include "TicTacticalToe/Game/TacGameState.h"
 #include "TicTacticalToe/Game/TacBoardTile.h"
 #include "Kismet/GameplayStatics.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 
 void ATacGameState::BeginPlay()
@@ -225,6 +226,12 @@ void ATacGameState::OnBoardGameOver(bool DidOffenseWin)
 
 			SelectedHex->SetOwnership(OffensiveTeam);
 
+			if (OffensiveTeam == EPlayerType::PLAYER)
+			{
+				// Give player an item for taking a hex
+				OnPlayerWonHex();
+			}
+
 			if (WinningTeam != EPlayerType::NONE)
 			{
 				FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAMEOVER);
@@ -277,6 +284,11 @@ void ATacGameState::OpponentChooseHex()
 			FTimerHandle handle;
 			GetWorldTimerManager().SetTimer(handle, this, &ATacGameState::OpponentConfirmHex, 3.f, false);
 		}
+		else
+		{
+			// If opponent didn't choose a hex (because of radiation or such), pass the turn to the player
+			ChangeState(EGameState::GAME_OVERVIEW);
+		}
 	}
 }
 
@@ -297,5 +309,16 @@ void ATacGameState::OpponentConfirmHex()
 		FTimerHandle handle;
 		FTimerDelegate timerDel = FTimerDelegate::CreateUObject(this, &ATacGameState::ChangeState, EGameState::GAME_TICTACTOE);
 		GetWorldTimerManager().SetTimer(handle, timerDel, 1.f, false);
+	}
+}
+
+void ATacGameState::SetSelectingTileForItem(bool bIsSelecting)
+{
+	bIsSelectingTileForItem = bIsSelecting;
+
+	if (APlayerController* pc = GetWorld()->GetFirstPlayerController())
+	{
+		pc->CurrentMouseCursor = bIsSelecting ? EMouseCursor::Crosshairs : EMouseCursor::Default;
+		UWidgetBlueprintLibrary::SetFocusToGameViewport();
 	}
 }

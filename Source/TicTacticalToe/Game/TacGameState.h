@@ -19,6 +19,7 @@ class TICTACTICALTOE_API ATacGameState : public AGameState
 	GENERATED_BODY()
 
 	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnStateChanged, EGameState, NewState);
+	DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnItemTileSelected, ATacBoardTile*, SelectedTile);
 
 
 public:
@@ -30,9 +31,13 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
 	FOnStateChanged OnStateChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "TicTacticalToe")
+	FOnItemTileSelected OnItemTileSelected;
+
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TEnumAsByte<EGameState> CurrentState;
 
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	void PassTicTacToeTurn();
 
 	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
@@ -57,14 +62,24 @@ public:
 	TEnumAsByte<EPlayerType> OffensiveTeam = EPlayerType::NONE;
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TEnumAsByte<EPlayerType> DefensiveTeam = EPlayerType::NONE;
+
+	// Winning team of the entire campaign
 	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TEnumAsByte<EPlayerType> WinningTeam = EPlayerType::NONE;
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "TicTacticalToe")
+	void OnPlayerWonHex();
 
 	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	void OnBoardGameOver(bool DidOffenseWin);
 
 	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
 	bool IsBoardGameOver();
+
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	bool IsSelectingTileForItem() { return bIsSelectingTileForItem; }
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
+	void SetSelectingTileForItem(bool bIsSelecting);
 
 protected:
 
@@ -76,6 +91,8 @@ protected:
 	EPlayerType TicTacToeTeamTurn = EPlayerType::NEUTRAL;
 	
 	bool bIsPlayersHexTurn = false; // We flip this at the start of overview state so start out false
+
+	bool bIsSelectingTileForItem = false;
 
 	float TurnTimer = 0.75f;
 
