@@ -24,16 +24,8 @@ ATacBoardTile::ATacBoardTile()
 #endif
 
 
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
-}
-
-// Called when the game starts or when spawned
-void ATacBoardTile::BeginPlay()
-{
-	Super::BeginPlay();
-	
 }
 
 void ATacBoardTile::SetTileType_Implementation(ETileType NewType)
@@ -42,13 +34,6 @@ void ATacBoardTile::SetTileType_Implementation(ETileType NewType)
 	TileType = NewType;
 
 	OnTileTypeChanged.Broadcast(oldType, NewType);
-}
-
-// Called every frame
-void ATacBoardTile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void ATacBoardTile::InitializeTile(FIntPoint Coords)

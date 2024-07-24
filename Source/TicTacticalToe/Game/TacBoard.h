@@ -13,7 +13,7 @@ struct FTileArray
 	GENERATED_BODY()
 
 public:
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TArray<ATacBoardTile*> TileCol;
 };
 
@@ -42,7 +42,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	FIntPoint BoardSize = FIntPoint(3, 3);
 
-	UPROPERTY()
+	UPROPERTY(BlueprintReadOnly, Category = "TicTacticalToe")
 	TArray<FTileArray> TileRows;
 
 	// Called when the game starts or when spawned
@@ -54,15 +54,17 @@ protected:
 
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
+	UFUNCTION(BlueprintCallable, Category = "TicTacticalToe")
 	ATacBoardTile* const GetRandomEmptyTile();
 
 	TArray<ATacBoardTile*> GetPotentialWinningTiles();
 
 	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
 	TArray<ATacBoardTile*> GetCenterWallTiles();
+	
+	UFUNCTION(BlueprintPure, Category = "TicTacticalToe")
+	TArray<ATacBoardTile*> GetTilesIn3By3Radius(ATacBoardTile* TargetTile);
 
 	// Clears the row or col from the center wall tile (the only type of tile that you can select that infers a row or col)
 	// Returns if the clear was succesful (i.e. a valid target tile was chosen)

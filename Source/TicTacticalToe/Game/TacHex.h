@@ -87,8 +87,4 @@ protected:
 	void OnMouseLeave(AActor* Actor);
 	virtual void OnMouseLeave_Implementation(AActor* Actor);
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

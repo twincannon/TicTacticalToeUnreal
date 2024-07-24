@@ -10,8 +10,7 @@ ATacHexGrid::ATacHexGrid()
 	HexGridRoot = CreateDefaultSubobject<USceneComponent>(TEXT("HexGridRoot"));
 	RootComponent = HexGridRoot;
 
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	Radius = 50.f;
 	GridSize = FIntPoint(5, 5);
@@ -26,13 +25,6 @@ void ATacHexGrid::BeginPlay()
 	Super::BeginPlay();
 
 	SetupHexes();
-}
-
-// Called every frame
-void ATacHexGrid::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void ATacHexGrid::SetupHexes()

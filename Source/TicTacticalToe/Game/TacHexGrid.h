@@ -50,9 +50,4 @@ protected:
 	UPROPERTY()
 	TArray<ATacHex*> Hexes;
 
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
 };

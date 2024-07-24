@@ -4,30 +4,20 @@
 #include "TicTacticalToe/Game/TacGameState.h"
 #include "TicTacticalToe/TicTacticalToe.h"
 
-// Sets default values
 ATacBoard::ATacBoard()
 {
 	BoardRoot = CreateDefaultSubobject<USceneComponent>(TEXT("BoardRoot"));
 	RootComponent = BoardRoot;
 
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 }
 
-// Called when the game starts or when spawned
 void ATacBoard::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	SetupTiles();
-}
-
-// Called every frame
-void ATacBoard::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
 }
 
 void ATacBoard::SetupTiles()
@@ -437,4 +427,49 @@ void ATacBoard::ClearSelectableTiles()
 			tile->SetTileSelectable(false);
 		}
 	}
+}
+
+TArray<ATacBoardTile*> ATacBoard::GetTilesIn3By3Radius(ATacBoardTile* TargetTile)
+{
+	TArray<ATacBoardTile*> tilesInRadius;
+	int32 targetRow = -1;
+	int32 targetCol = -1;
+
+	for (int32 rowNum = 0; rowNum < TileRows.Num(); ++rowNum)
+	{
+		for (int32 colNum = 0; colNum < TileRows[rowNum].TileCol.Num(); ++colNum)
+		{
+			if (TileRows[rowNum].TileCol[colNum] == TargetTile)
+			{
+				targetRow = rowNum;
+				targetCol = colNum;
+				break;
+			}
+		}
+		if (targetRow != -1 && targetCol != -1)
+		{
+			break;
+		}
+	}
+
+	if (targetRow == -1 || targetCol == -1)
+	{
+		return tilesInRadius;
+	}
+
+	for (int32 rowOffset = -1; rowOffset <= 1; ++rowOffset)
+	{
+		for (int32 colOffset = -1; colOffset <= 1; ++colOffset)
+		{
+			int32 row = targetRow + rowOffset;
+			int32 col = targetCol + colOffset;
+
+			if (row >= 0 && row < TileRows.Num() && col >= 0 && col < TileRows[row].TileCol.Num())
+			{
+				tilesInRadius.Add(TileRows[row].TileCol[col]);
+			}
+		}
+	}
+
+	return tilesInRadius;
 }

@@ -25,7 +25,6 @@ protected:
 	UPROPERTY(BlueprintReadOnly, EditDefaultsOnly, Category = "TicTacticalToe")
 	UCameraComponent* CameraComponent;
 
-
 	virtual void PostInitializeComponents() override;
 	virtual void BeginPlay() override;
 
@@ -37,11 +36,10 @@ protected:
 
 	void ShowMainMenu();
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
+	void ExitGame();
 
-	// Called to bind functionality to input
+public:	
+
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	void DoClickTrace();

@@ -8,6 +8,7 @@
 
 #include "Blueprint/UserWidget.h"
 #include "UObject/ConstructorHelpers.h"
+
 // Sets default values
 ATacPawn::ATacPawn()
 {
@@ -24,9 +25,7 @@ ATacPawn::ATacPawn()
 		MainMenuWidgetClass = WidgetBPClass.Class;
 	}
 
- 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
-
+	PrimaryActorTick.bCanEverTick = false;
 }
 
 void ATacPawn::PostInitializeComponents()
@@ -81,19 +80,13 @@ void ATacPawn::ShowMainMenu()
 	}
 }
 
-// Called every frame
-void ATacPawn::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
-
 // Called to bind functionality to input
 void ATacPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 	PlayerInputComponent->BindAction("Click", IE_Pressed, this, &ATacPawn::DoClickTrace);
+	PlayerInputComponent->BindAction("Escape", IE_Pressed, this, &ATacPawn::ExitGame);
 
 }
 
@@ -117,7 +110,10 @@ void ATacPawn::DoClickTrace()
 		{
 			hex->OnHexClicked.Broadcast(hex);
 		}
-	}
+	}	
+}
 
-	
+void ATacPawn::ExitGame()
+{
+	FGenericPlatformMisc::RequestExit(false);
 }
